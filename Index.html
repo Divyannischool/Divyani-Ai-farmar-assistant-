@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>AI Farmer Assistant 🌾</title>
+
+<style>
+:root{
+  --bg:#f3f8f3;
+  --card:#ffffff;
+  --text:#17351e;
+  --muted:#66806b;
+  --green:#218739;
+  --green2:#166a2a;
+  --border:#dce8dc;
+  --user:#e3f4e6;
+  --shadow:0 10px 30px rgba(20,80,30,.12);
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  font-family:Arial,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+body.dark{
+  --bg:#0d160f;
+  --card:#172219;
+  --text:#ecf7ed;
+  --muted:#a7bba9;
+  --border:#2b3d2e;
+  --user:#203a25;
+  --shadow:0 10px 30px rgba(0,0,0,.3);
+}
+
+/* HEADER */
+
+header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:rgba(255,255,255,.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+
+.dark header{
+  background:rgba(23,34,25,.95);
+}
+
+.nav{
+  max-width:1200px;
+  margin:auto;
+  padding:12px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.logo{
+  width:42px;
+  height:42px;
+  border-radius:13px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#42bb5b,#126c2a);
+  color:white;
+  font-size:23px;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+}
+
+button{
+  font:inherit;
+  cursor:pointer;
+  border:0;
+}
+
+.iconBtn{
+  padding:9px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:var(--card);
+  color:var(--text);
+}
+
+/* MAIN */
+
+.container{
+  max-width:1200px;
+  margin:auto;
+  padding:20px 16px 40px;
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:1.4fr .8fr;
+  gap:18px;
+  margin-bottom:20px;
+}
+
+.heroCard{
+  padding:28px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#e7f7e8,#ffffff);
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+
+.dark .heroCard{
+  background:linear-gradient(135deg,#1b3520,#172219);
+}
+
+.badge{
+  display:inline-block;
+  padding:6px 10px;
+  border-radius:20px;
+  background:#dcf2df;
+  color:#176b2b;
+  font-size:12px;
+  font-weight:bold;
+}
+
+h1{
+  font-size:clamp(28px,5vw,46px);
+  margin:12px 0;
+}
+
+.sub{
+  color:var(--muted);
+  line-height:1.6;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin-top:20px;
+}
+
+.stat{
+  padding:15px;
+  text-align:center;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:15px;
+}
+
+.stat b{
+  display:block;
+  font-size:21px;
+}
+
+.stat span{
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* LAYOUT */
+
+.layout{
+  display:grid;
+  grid-template-columns:290px 1fr;
+  gap:18px;
+}
+
+.panel,
+.chatCard{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:var(--shadow);
+}
+
+.panel{
+  padding:16px;
+  height:max-content;
+}
+
+.panel h3{
+  margin-top:5px;
+}
+
+.quick{
+  display:grid;
+  gap:8px;
+}
+
+.quick button{
+  text-align:left;
+  padding:11px;
+  background:transparent;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+}
+
+.quick button:hover{
+  border-color:var(--green);
+  background:rgba(33,135,57,.07);
+}
+
+/* CHAT */
+
+.chatCard{
+  min-height:650px;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+
+.chatHead{
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+}
+
+.status{
+  color:var(--green);
+  font-size:12px;
+}
+
+.messages{
+  padding:18px;
+  flex:1;
+  overflow:auto;
+  max-height:560px;
+}
+
+.msg{
+  display:flex;
+  margin:10px 0;
+}
+
+.msg.user{
+  justify-content:flex-end;
+}
+
+.bubble{
+  max-width:85%;
+  padding:12px 14px;
+  border-radius:16px;
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+
+.assistant .bubble{
+  background:var(--bg);
+  border:1px solid var(--border);
+}
+
+.user .bubble{
+  background:var(--user);
+}
+
+.composer{
+  padding:12px;
+  border-top:1px solid var(--border);
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:8px;
+}
+
+textarea{
+  resize:none;
+  min-height:52px;
+  padding:13px;
+  border-radius:13px;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text);
+  outline:none;
+}
+
+.send{
+  background:var(--green);
+  color:white;
+  padding:0 18px;
+  border-radius:12px;
+  font-weight:bold;
+}
+
+.send:hover{
+  background:var(--green2);
+}
+
+/* TOOLS */
+
+.toolGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+
+.tool{
+  padding:12px;
+  border:1px solid var(--border);
+  border-radius:12px;
+}
+
+.tool b{
+  display:block;
+}
+
+.small{
+  color:var(--muted);
+  font-size:12px;
+}
+
+/* MODAL */
+
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  place-items:center;
+  padding:18px;
+  z-index:100;
+}
+
+.modal.open{
+  display:grid;
+}
+
+.modalBox{
+  width:min(600px,100%);
+  background:var(--card);
+  border-radius:20px;
+  padding:20px;
+}
+
+.field{
+  margin:14px 0;
+}
+
+.field label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+.field input,
+.field select{
+  width:100%;
+  padding:11px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.primary{
+  background:var(--green);
+  color:white;
+  padding:10px 15px;
+  border-radius:10px;
+}
+
+.danger{
+  background:#c63838;
+  color:white;
+  padding:10px 15px;
+  border-radius:10px;
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+
+  .hero{
+    grid-template-columns:1fr;
+  }
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .panel{
+    order:2;
+  }
+
+  .chatCard{
+    min-height:620px;
+  }
+
+  .messages{
+    max-height:500px;
+  }
+}
+
+@media(max-width:500px){
+
+  .stats{
+    grid-template-columns:1fr;
+  }
+
+  .brand{
+    font-size:16px;
+  }
+
+  .actions .iconBtn{
+    font-size:12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="nav">
+
+<div class="brand">
+<div class="logo">🌾</div>
+AI Farmer Assistant
+</div>
+
+<div class="actions">
+
+<button class="iconBtn" onclick="openSettings()">
+⚙️ Settings
+</button>
+
+<button class="iconBtn" onclick="toggleDark()">
+🌙
+</button>
+
+</div>
+
+</div>
+
+</header>
+
+
+<main class="container">
+
+<!-- HERO -->
+
+<section class="hero">
+
+<div class="heroCard">
+
+<span class="badge">
+AI POWERED AGRICULTURE ASSISTANT
+</span>
+
+<h1>
+Smart Help For Every Farmer 🌱
+</h1>
+
+<p class="sub">
+
+फसल, मिट्टी, खाद, सिंचाई, कीट, रोग,
+जैविक खेती, मंडी, सरकारी योजनाओं और
+खेती से जुड़े सवाल AI से पूछें।
+
+</p>
+
+<div class="stats">
+
+<div class="stat">
+<b>24×7</b>
+<span>AI Guidance</span>
+</div>
+
+<div class="stat">
+<b>3+</b>
+<span>Languages</span>
+</div>
+
+<div class="stat">
+<b>AI</b>
+<span>Smart Answers</span>
+</div>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<h3>🌦️ Farmer Tools</h3>
+
+<div class="toolGrid">
+
+<div class="tool">
+<b>🌱 Crop</b>
+<span class="small">Crop planning</span>
+</div>
+
+<div class="tool">
+<b>🐛 Pest</b>
+<span class="small">Pest guidance</span>
+</div>
+
+<div class="tool">
+<b>💧 Water</b>
+<span class="small">Irrigation</span>
+</div>
+
+<div class="tool">
+<b>🧪 Soil</b>
+<span class="small">Soil nutrients</span>
+</div>
+
+</div>
+
+<p class="small">
+Better answer के लिए crop, location,
+crop age और symptoms बताएं।
+</p>
+
+</div>
+
+</section>
+
+
+<!-- MAIN -->
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+
+<aside class="panel">
+
+<h3>⚡ Quick Questions</h3>
+
+<div class="quick">
+
+<button onclick="ask('गेहूं में पत्तियां पीली हो रही हैं, इसका कारण और समाधान बताइए।')">
+🌾 गेहूं की पीली पत्तियां
+</button>
+
+<button onclick="ask('टमाटर में होने वाले सामान्य रोग और कीट तथा उनके बचाव के उपाय बताइए।')">
+🍅 टमाटर रोग/कीट
+</button>
+
+<button onclick="ask('धान की खेती के लिए मिट्टी, खाद और सिंचाई की पूरी योजना बताइए।')">
+🌾 धान की खेती
+</button>
+
+<button onclick="ask('कपास में गुलाबी सुंडी से बचाव कैसे करें?')">
+🌿 कपास की सुंडी
+</button>
+
+<button onclick="ask('जैविक खेती शुरू करने का आसान तरीका बताइए।')">
+♻️ जैविक खेती
+</button>
+
+<button onclick="ask('भारत में किसानों के लिए सरकारी योजनाओं की जानकारी कैसे प्राप्त करें?')">
+🏛️ सरकारी योजनाएं
+</button>
+
+<button onclick="ask('फसल में सिंचाई कब करनी चाहिए?')">
+💧 सिंचाई
+</button>
+
+<button onclick="ask('Soil testing क्यों जरूरी है?')">
+🧪 मिट्टी जांच
+</button>
+
+</div>
+
+
+<h3 style="margin-top:20px">
+💾 Chat
+</h3>
+
+<div class="quick">
+
+<button onclick="newChat()">
+＋ New Chat
+</button>
+
+<button onclick="exportChat()">
+⬇️ Export Chat
+</button>
+
+<button onclick="clearChat()">
+🗑️ Clear Chat
+</button>
+
+</div>
+
+</aside>
+
+
+<!-- CHAT -->
+
+<section class="chatCard">
+
+<div class="chatHead">
+
+<div>
+<b>🌾 Farmer AI</b>
+
+<div class="small">
+Agriculture-focused AI assistant
+</div>
+
+</div>
+
+<div class="status" id="status">
+● Ready
+</div>
+
+</div>
+
+
+<div class="messages" id="messages">
+</div>
+
+
+<div class="composer">
+
+<button class="iconBtn"
+onclick="startVoice()">
+🎙️
+</button>
+
+<textarea
+id="input"
+placeholder="अपना खेती से जुड़ा सवाल लिखें...">
+</textarea>
+
+<button
+class="send"
+onclick="sendMessage()">
+Send ➤
+</button>
+
+</div>
+
+</section>
+
+</div>
+
+</main>
+
+
+<footer>
+
+AI Farmer Assistant • General agricultural guidance only.
+Always verify pesticide/fertilizer dosage with the product label
+and qualified local agriculture experts.
+
+</footer>
+
+
+<!-- SETTINGS -->
+
+<div class="modal" id="settingsModal">
+
+<div class="modalBox">
+
+<h2>⚙️ Groq Settings</h2>
+
+<p class="small">
+
+अपनी Groq API key यहां डालें।
+Key केवल इस browser के localStorage में save होगी।
+
+</p>
+
+
+<div class="field">
+
+<label>
+Groq API Key
+</label>
+
+<input
+id="apiKey"
+type="password"
+placeholder="gsk_...">
+
+</div>
+
+
+<div class="field">
+
+<label>
+AI Model
+</label>
+
+<select id="model">
+
+<option value="openai/gpt-oss-120b">
+openai/gpt-oss-120b
+</option>
+
+<option value="openai/gpt-oss-20b">
+openai/gpt-oss-20b
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Language
+</label>
+
+<select id="language">
+
+<option>Hindi</option>
+<option>Hinglish</option>
+<option>English</option>
+
+</select>
+
+</div>
+
+
+<div class="row">
+
+<button
+class="primary"
+onclick="saveSettings()">
+Save
+</button>
+
+<button
+class="iconBtn"
+onclick="closeSettings()">
+Close
+</button>
+
+<button
+class="danger"
+onclick="removeKey()">
+Remove Key
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =========================
+   GROQ CONFIG
+========================= */
+
+const API_URL =
+"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";
+
+
+const SYSTEM_PROMPT = `
+
+You are AI Farmer Assistant,
+an agriculture-focused AI assistant for farmers in India.
+
+Answer agriculture questions clearly,
+practically and safely.
+
+Topics include:
+
+- Crop selection
+- Crop planning
+- Sowing
+- Soil
+- Fertilizer
+- Irrigation
+- Pest management
+- Crop diseases
+- Weed management
+- Organic farming
+- Harvesting
+- Storage
+- Agriculture technology
+- Indian government schemes
+
+Always ask for useful missing information
+such as:
+
+crop
+crop variety
+state
+district
+crop age
+soil type
+irrigation
+symptoms
+
+if required.
+
+Never invent pesticide dosage.
+
+For pesticides/fungicides/herbicides,
+tell users to follow the registered
+product label and local agriculture expert.
+
+Do not claim a disease diagnosis
+with certainty from text alone.
+
+If current market price,
+weather or government scheme information
+is unavailable, clearly say that live data
+is not available.
+
+Give answers using headings,
+bullet points and simple steps.
+
+`;
+
+
+/* =========================
+   STORAGE
+========================= */
+
+let messages =
+JSON.parse(
+localStorage.getItem("farmerMessages") || "[]"
+);
+
+let settings =
+JSON.parse(
+localStorage.getItem("farmerSettings") || "{}"
+);
+
+
+/* =========================
+   ELEMENT
+========================= */
+
+const input =
+document.getElementById("input");
+
+const messagesBox =
+document.getElementById("messages");
+
+const status =
+document.getElementById("status");
+
+
+/* =========================
+   RENDER CHAT
+========================= */
+
+function render(){
+
+messagesBox.innerHTML="";
+
+if(messages.length===0){
+
+addBubble(
+"assistant",
+`नमस्ते किसान भाई/बहन! 🌾
+
+मैं AI Farmer Assistant हूँ।
+
+आप खेती से जुड़ा कोई भी सवाल पूछ सकते हैं।
+
+उदाहरण:
+
+“मेरे गेहूं की फसल 35 दिन की है और पत्तियां पीली हो रही हैं, क्या करूं?”`
+);
+
+return;
+
+}
+
+messages.forEach(
+m=>addBubble(m.role,m.content)
+);
+
+}
+
+
+/* =========================
+   ADD MESSAGE
+========================= */
+
+function addBubble(role,text,save=false){
+
+const row =
+document.createElement("div");
+
+row.className =
+"msg " + role;
+
+const bubble =
+document.createElement("div");
+
+bubble.className="bubble";
+
+bubble.textContent=text;
+
+row.appendChild(bubble);
+
+messagesBox.appendChild(row);
+
+messagesBox.scrollTop =
+messagesBox.scrollHeight;
+
+if(save){
+
+messages.push({
+role:role,
+content:text
+});
+
+localStorage.setItem(
+"farmerMessages",
+JSON.stringify(messages)
+);
+
+}
+
+}
+
+
+/* =========================
+   SEND MESSAGE
+========================= */
+
+async function sendMessage(){
+
+const question =
+input.value.trim();
+
+if(!question)
+return;
+
+
+const apiKey =
+localStorage.getItem("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");
+
+
+if(!apiKey){
+
+openSettings();
+
+alert(
+"पहले Groq API Key डालें।"
+);
+
+return;
+
+}
+
+
+addBubble(
+"user",
+question,
+true
+);
+
+input.value="";
+
+status.textContent=
+"● AI Thinking...";
+
+
+const loading =
+document.createElement("div");
+
+loading.className=
+"msg assistant";
+
+loading.id="loading";
+
+loading.innerHTML=`
+<div class="bubble">
+🌾 AI सोच रहा है...
+</div>
+`;
+
+messagesBox.appendChild(loading);
+
+
+try{
+
+const recentMessages =
+messages.slice(-12);
+
+
+const response =
+await fetch(
+API_URL,
+{
+
+method:"POST",
+
+headers:{
+"Content-Type":
+"application/json",
+
+"Authorization":
+"Bearer " + apiKey
+},
+
+body:JSON.stringify({
+
+model:
+settings.model ||
+"openai/gpt-oss-120b",
+
+messages:[
+
+{
+role:"system",
+content:
+SYSTEM_PROMPT +
+"\nAnswer in " +
+(settings.language || "Hindi")
+},
+
+...recentMessages
+
+],
+
+temperature:0.25,
+
+max_completion_tokens:1800
+
+})
+
+}
+);
+
+
+const data =
+await response.json();
+
+
+if(!response.ok){
+
+throw new Error(
+data?.error?.message ||
+"Groq API Error"
+);
+
+}
+
+
+const answer =
+data.choices?.[0]?.message?.content ||
+"No response received.";
+
+
+loading.remove();
+
+
+addBubble(
+"assistant",
+answer,
+true
+);
+
+
+status.textContent=
+"● Ready";
+
+
+}
+
+catch(error){
+
+loading.remove();
+
+addBubble(
+"assistant",
+"❌ Error:\n\n" +
+error.message +
+"\n\nAPI key, internet connection और model check करें।",
+true
+);
+
+status.textContent=
+"● Error";
+
+}
+
+}
+
+
+/* =========================
+   QUICK QUESTION
+========================= */
+
+function ask(question){
+
+input.value=question;
+
+sendMessage();
+
+}
+
+
+/* =========================
+   SETTINGS
+========================= */
+
+function openSettings(){
+
+document.getElementById(
+"apiKey"
+).value =
+localStorage.getItem(
+"groqApiKey"
+) || "";
+
+document.getElementById(
+"model"
+).value =
+settings.model ||
+"openai/gpt-oss-120b";
+
+document.getElementById(
+"language"
+).value =
+settings.language ||
+"Hindi";
+
+document.getElementById(
+"settingsModal"
+).classList.add("open");
+
+}
+
+
+function closeSettings(){
+
+document.getElementById(
+"settingsModal"
+).classList.remove("open");
+
+}
+
+
+function saveSettings(){
+
+const key =
+document.getElementById(
+"apiKey"
+).value.trim();
+
+
+if(key){
+
+localStorage.setItem(
+"groqApiKey",
+key
+);
+
+}
+
+
+settings = {
+
+model:
+document.getElementById(
+"model"
+).value,
+
+language:
+document.getElementById(
+"language"
+).value
+
+};
+
+
+localStorage.setItem(
+"farmerSettings",
+JSON.stringify(settings)
+);
+
+
+closeSettings();
+
+status.textContent=
+"● Settings Saved";
+
+}
+
+
+function removeKey(){
+
+localStorage.removeItem(
+"groqApiKey"
+);
+
+document.getElementById(
+"apiKey"
+).value="";
+
+alert(
+"API key removed."
+);
+
+}
+
+
+/* =========================
+   NEW CHAT
+========================= */
+
+function newChat(){
+
+messages=[];
+
+localStorage.removeItem(
+"farmerMessages"
+);
+
+render();
+
+}
+
+
+/* =========================
+   CLEAR CHAT
+========================= */
+
+function clearChat(){
+
+if(
+confirm(
+"क्या आप current chat delete करना चाहते हैं?"
+)
+){
+
+messages=[];
+
+localStorage.removeItem(
+"farmerMessages"
+);
+
+render();
+
+}
+
+}
+
+
+/* =========================
+   EXPORT
+========================= */
+
+function exportChat(){
+
+let text="AI FARMER ASSISTANT CHAT\n\n";
+
+messages.forEach(m=>{
+
+text +=
+(m.role==="user" ? "YOU: " : "AI: ") +
+m.content +
+"\n\n";
+
+});
+
+
+const blob =
+new Blob(
+[text],
+{type:"text/plain"}
+);
+
+const url =
+URL.createObjectURL(blob);
+
+const a =
+document.createElement("a");
+
+a.href=url;
+
+a.download=
+"farmer-chat.txt";
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}
+
+
+/* =========================
+   DARK MODE
+========================= */
+
+function toggleDark(){
+
+document.body.classList.toggle(
+"dark"
+);
+
+localStorage.setItem(
+"darkMode",
+document.body.classList.contains("dark")
+);
+
+}
+
+
+if(
+localStorage.getItem("darkMode")
+==="true"
+){
+
+document.body.classList.add("dark");
+
+}
+
+
+/* =========================
+   VOICE INPUT
+========================= */
+
+function startVoice(){
+
+const SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+
+if(!SpeechRecognition){
+
+alert(
+"Voice input इस browser में supported नहीं है। Chrome इस्तेमाल करें।"
+);
+
+return;
+
+}
+
+
+const recognition =
+new SpeechRecognition();
+
+
+recognition.lang =
+settings.language === "English"
+? "en-IN"
+: "hi-IN";
+
+
+recognition.interimResults=false;
+
+
+recognition.onstart=function(){
+
+status.textContent=
+"🎙️ Listening...";
+
+};
+
+
+recognition.onresult=function(event){
+
+input.value =
+event.results[0][0].transcript;
+
+status.textContent=
+"● Ready";
+
+};
+
+
+recognition.onerror=function(){
+
+status.textContent=
+"● Voice Error";
+
+};
+
+
+recognition.start();
+
+}
+
+
+/* =========================
+   ENTER KEY
+========================= */
+
+input.addEventListener(
+"keydown",
+function(event){
+
+if(
+event.key==="Enter" &&
+!event.shiftKey
+){
+
+event.preventDefault();
+
+sendMessage();
+
+}
+
+});
+
+
+/* =========================
+   START
+========================= */
+
+render();
+
+</script>
+
+</body>
+</html>
